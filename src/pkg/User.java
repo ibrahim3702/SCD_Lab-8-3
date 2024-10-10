@@ -1,21 +1,47 @@
 package pkg;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+
 public class User {
-	public boolean validateUser(String username, String password) {
+	private static final Logger logger = Logger.getLogger(User.class.getName());
+    private Set<String> existingUsernames = new HashSet<>(); // Simulating a database of usernames
+    private Set<String> existingEmails = new HashSet<>(); // Simulating a database of emails
+
+    public boolean validateUser(String username, String password, String email) {
         try {
             if (!isValidUsername(username)) {
-                System.out.println("Username validation failed: must be between 5 and 20 characters.");
+                logger.warning("Username validation failed: must be between 5 and 20 characters.");
+                return false;
+            }
+            if (existingUsernames.contains(username)) {
+                logger.warning("Username validation failed: username already exists.");
                 return false;
             }
             if (!isValidPassword(password)) {
-                System.out.println("Password validation failed: must contain at least one special character.");
+                logger.warning("Password validation failed: must contain at least one special character.");
                 return false;
             }
+            if (!isValidEmail(email)) {
+                logger.warning("Email validation failed: invalid email format.");
+                return false;
+            }
+            if (existingEmails.contains(email)) {
+                logger.warning("Email validation failed: email already exists.");
+                return false;
+            }
+
+            // Log successful registration attempt
+            logger.info("User registration successful for username: " + username);
+            // Register the new user (in a real scenario, save to the database)
+            existingUsernames.add(username);
+            existingEmails.add(email);
         } catch (NullPointerException e) {
-            System.out.println("Error: Input cannot be null - " + e.getMessage());
+            logger.severe("Error: Input cannot be null - " + e.getMessage());
             return false;
         } catch (Exception e) {
-            System.out.println("Unexpected error: " + e.getMessage());
+            logger.severe("Unexpected error: " + e.getMessage());
             return false;
         }
         return true;
@@ -36,14 +62,23 @@ public class User {
         }
         return password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*");
     }
+
+    // Helper method to validate email format
+    private boolean isValidEmail(String email) {
+        if (email == null) {
+            throw new IllegalArgumentException("Email cannot be null.");
+        }
+        return email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
+    }
     public static void main(String[] args) {
         User validator = new User();
 
         // Test validation
         try {
             String username = "johndoe";
+            String email = "johndoe@gmail.com";
             String password = "password123!";
-            if (validator.validateUser(username, password)) {
+            if (validator.validateUser(username, password,email)) {
                 System.out.println("User validation successful.");
             } else {
                 System.out.println("User validation failed.");
